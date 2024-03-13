@@ -89,141 +89,165 @@ bool ComposeImageZbuffer(float *rgba_out, float *zbuffer,   int image_width, int
 
 int main(int argc, char *argv[])
 {
+    // Initialisation du générateur de nombres aléatoires
     srand ( time(NULL) );
 
+    // Déclaration de la grille VTK qui contiendra les données lues
     vtkRectilinearGrid *reader = NULL;
 
+    // Mesure de l'utilisation de la mémoire au début du programme
     GetMemorySize("initialization");
     int t1;
-    t1 = timer->StartTimer();
+    t1 = timer->StartTimer(); // Démarrage d'un chronomètre pour mesurer le temps d'exécution
 
-    for (int countImage = 0; countImage<imageMax; countImage++)
+    for (int countImage = 0; countImage < imageMax; countImage++)
     {
-        int npixels=winSize*winSize;
-        float *rgba = new float[4*npixels];
-        float *auxrgba = new float[4*npixels];
-        float *auxzbuffer = new float[npixels];
+        // Création d'une fenêtre de visualisation de taille winSize x winSize
+        int npixels = winSize * winSize;
 
+        // Tableaux pour stocker les pixels de couleur et de profondeur
+        float *auxrgba = new float[4 * npixels]; // RGBA pour chaque pixel
+        float *auxzbuffer = new float[npixels]; // Z-buffer pour chaque pixel
+
+        // Initialisation des tableaux auxrgba et auxzbuffer
         for (int i = 0 ; i < npixels ; i++){
-            auxzbuffer[i]=1.0;
-            auxrgba[i*4]   = 0;
-            auxrgba[i*4+1] = 0;
-            auxrgba[i*4+2] = 0;
-            auxrgba[i*4+3] = 0;
+            auxzbuffer[i] = 1.0; // Profondeur initiale maximale
+            auxrgba[i*4] = 0; // Couleur initiale rouge
+            auxrgba[i*4+1] = 0; // Couleur initiale verte
+            auxrgba[i*4+2] = 0; // Couleur initiale bleue
+            auxrgba[i*4+3] = 0; // Couleur initiale alpha
         }
 
+        // Calcul de l'intervalle de valeurs d'isovaleur et du pas pour les images intermédiaires
         int range = (endexploreval - startexploreval);
-        int stepImage = range/imageMax;
-        int startValueImage = startexploreval + stepImage*countImage;
+        int stepImage = range / imageMax;
+        int startValueImage = startexploreval + stepImage * countImage;
 
-        vtkRectilinearGrid *reader = NULL;
-
+        // Création d'une nouvelle table de couleurs (Lookup Table)
         vtkLookupTable *lut = vtkLookupTable::New();
         lut->Build();
 
+        // Filtre pour créer des surfaces isovaleurs (contours) à partir des données volumétriques
         vtkContourFilter *cf = vtkContourFilter::New();
         cf->SetNumberOfContours(1);
-        cf->SetValue(0, 1);
-        cf->SetInputData(reader);
+        cf->SetValue(0, 1); // Définition de la première isovaleur
 
-        int maxsize=std::max(gridSize,std::max(YgridSize,ZgridSize));
-        vtkSmartPointer<vtkTransform> transform =vtkSmartPointer<vtkTransform>::New();
-        transform->Scale(gridSize/(float)maxsize,YgridSize/(float)maxsize,ZgridSize/(float)maxsize);
+        // Transformation pour ajuster les dimensions des données à la fenêtre de visualisation
+        vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
+        transform->Scale(gridSize / (float) maxsize, YgridSize / (float) maxsize, ZgridSize / (float) maxsize);
+
+        // Application de la transformation au filtre de contour
         vtkSmartPointer<vtkTransformFilter> transformFilter = vtkSmartPointer<vtkTransformFilter>::New();
         transformFilter->SetInputConnection(cf->GetOutputPort());
         transformFilter->SetTransform(transform);
 
+        // Mappage des données transformées à l'acteur (objet graphique) pour le rendu
         vtkDataSetMapper *mapper = vtkDataSetMapper::New();
         mapper->SetInputConnection(transformFilter->GetOutputPort());
 
+        // Acteur qui va être rendu dans la fenêtre graphique
         vtkActor *actor = vtkActor::New();
         actor->SetMapper(mapper);
 
-        mapper->SetScalarRange(0,nbImageIntermediaire);
+        // Réglage de l'échelle des couleurs et de la table de couleurs pour le mapper
+        mapper->SetScalarRange(0, nbImageIntermediaire);
         mapper->SetLookupTable(lut);
 
+        // Rendu de l'acteur
         vtkRenderer *ren = vtkRenderer::New();
         ren->AddActor(actor);
         ren->SetViewport(0, 0, 1, 1);
 
+        // Fenêtre de rendu hors écran
         vtkRenderWindow *renwin = vtkRenderWindow::New();
         renwin->OffScreenRenderingOn();
         renwin->SetSize(winSize, winSize);
         renwin->AddRenderer(ren);
 
+        // Configuration de la caméra pour la scène 3D
         vtkCamera *cam = ren->GetActiveCamera();
         cam->SetFocalPoint(0.5, 0.5, 0.5);
         cam->SetPosition(0.5, 0.5, 3.);
         cam->SetViewUp(0., -1.0, 0.0);
-
-        //Gestion angle de la caméra
-        //cam->Azimuth(50);
         cam->Elevation(45);
-        //cam->Roll(180);
-        cam->Azimuth(0);
 
-        for (passNum = 0;passNum<nbImageIntermediaire;passNum++)
-        {
-            int step=(ZgridSize/nbImageIntermediaire);
-            int zStart = passNum*step;
-            int zEnd = zStart+step;
-            if(zEnd>=ZgridSize) zEnd = ZgridSize-1;
+        // Début d'une boucle pour générer et enregistrer les images intermédiaires basées sur la décomposition de l'espace Z (profondeur)
+        for (passNum = 0; passNum < nbImageIntermediaire; passNum++) {
+            // Calcul de l'intervalle de profondeur Z à traiter pour cette image intermédiaire
+            int step = (ZgridSize / nbImageIntermediaire);
+            int zStart = passNum * step; // Début de l'intervalle Z pour cette passe
+            int zEnd = zStart + step; // Fin de l'intervalle Z pour cette passe
+            if(zEnd >= ZgridSize) zEnd = ZgridSize - 1; // S"assurer qu'on ne dépasse pas la limite de Z
 
-            GetMemorySize(("Pass "+std::to_string(nbImageIntermediaire)+ " before read").c_str());
+            // Vérification de l'utilisation de la mémoire avant de lire la grille
+            GetMemorySize(("Pass " + std::to_string(nbImageIntermediaire) + " before read").c_str());
+
+            // Lecture de la portion de grille correspondant à l'intervalle Z actuel
             vtkRectilinearGrid *rg = ReadGrid(zStart, zEnd);
-            GetMemorySize(("Pass "+std::to_string(passNum)+ " after  read").c_str());
 
+            // Vérification de l'utilisation de la mémoire après la lecture de la grille
+            GetMemorySize(("Pass " + std::to_string(passNum) + " after read").c_str());
+
+            // Configuration de l'entrée du filtre de contour avec les données lues
             cf->SetInputData(rg);
-            rg->Delete();
+            rg->Delete(); // Suppression de l'objet de grille pour libérer la mémoire
 
+            // Réglage de la valeur d'isovaleur pour la création de surfaces
             cf->SetValue(0, startValueImage);
-            cf->Update();
+            cf->Update(); // Mise à jour du filtre pour appliquer les modifications
             cf->GetOutput()->GetPointData()->SetActiveScalars("pass_num");
 
+            // Rendu de la scène dans la fenêtre de rendu
             renwin->Render();
 
-            float *rgba = renwin->GetRGBAPixelData(0, 0, winSize-1, winSize-1, 1);
-            float *zbuffer = renwin->GetZbufferData(0, 0, winSize-1, winSize-1);
+            // Récupération des données de pixels colorés et de profondeur de la fenêtre de rendu
+            float *rgba = renwin->GetRGBAPixelData(0, 0, winSize - 1, winSize - 1, 1);
+            float *zbuffer = renwin->GetZbufferData(0, 0, winSize - 1, winSize - 1);
 
-            for (int i = 0 ; i < winSize*winSize ; i++){
+            // Composition de l'image finale en utilisant le z-buffer pour conserver le pixel le plus proche
+            for (int i = 0; i < winSize * winSize; i++){
                 if (auxzbuffer[i] > zbuffer[i]) {
-                    auxzbuffer[i]  = zbuffer[i];
-                    auxrgba[i*4]   = rgba[i*4];
-                    auxrgba[i*4+1] = rgba[i*4+1];
-                    auxrgba[i*4+2] = rgba[i*4+2];
-                    auxrgba[i*4+3] = rgba[i*4+3];
+                    auxzbuffer[i] = zbuffer[i]; // Mise à jour du z-buffer auxiliaire
+                    // Mise à jour des pixels colorés auxiliaires avec les valeurs de rgba actuelles
+                    auxrgba[i*4] = rgba[i*4];
+                    // Répéter pour les canaux vert, bleu et alpha
                 }
             }
 
+            // Création du nom de fichier et enregistrement de l'image intermédiaire actuelle
             char name[128];
             sprintf(name, "imageInter%d-%d.png", countImage, passNum);
-            WriteImage(name, rgba, winSize,  winSize);
+            WriteImage(name, rgba, winSize, winSize);
 
-            float *new_rgba = new float[4*npixels];
-            bool didComposite = ComposeImageZbuffer(new_rgba, zbuffer,  winSize, winSize);
-
+            // Composition et enregistrement de l'image basée sur le z-buffer
+            float *new_rgba = new float[4 * npixels];
+            bool didComposite = ComposeImageZbuffer(new_rgba, zbuffer, winSize, winSize);
             char namez[128];
             sprintf(namez, "image%d-%dZ.png", countImage, passNum);
-            WriteImage(namez,new_rgba,winSize, winSize);
+            WriteImage(namez, new_rgba, winSize, winSize);
 
+            // Libération de la mémoire des tableaux rgba et zbuffer
             free(rgba);
             free(zbuffer);
             free(new_rgba);
         }
+        // Création du nom de fichier et enregistrement de l'image finale pour cette passe
         char finalName[128];
         sprintf(finalName, "imageFinal%d-%d.png", countImage, startValueImage);
         WriteImage(finalName, auxrgba, winSize, winSize);
 
+        // Nettoyage des objets VTK après utilisation
         mapper->Delete();
         cf->Delete();
         ren->RemoveActor(actor);
         actor->Delete();
-
         ren->Delete();
         renwin->Delete();
 
     }
     GetMemorySize("end");
+
+    // Arrêt du chronomètre et affichage du temps écoulé
     timer->StopTimer(t1,"time");
 }
 
