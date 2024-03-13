@@ -17,7 +17,7 @@ int startexploreval=13;
 int endexploreval=20;//*/
 
 
- //Ajouter un slash pour décommenter
+ /*//Ajouter un slash pour décommenter
  #define FICHIER  "Mystere1_SHORT_X_512_Y_512_Z_134.raw"
  int gridSize = 512;
  int YgridSize = 512;
@@ -27,10 +27,10 @@ int endexploreval=20;//*/
  #define SMALL
 
  int startexploreval=16500;
- int endexploreval=65000;//
+ int endexploreval=65000;//*/
 
 
-/*
+
  #define FICHIER  "Mystere5_SHORT_X_2048_Y_2048_Z_756.raw"
 
  int gridSize = 2048;
@@ -41,7 +41,7 @@ int endexploreval=20;//*/
  #define BIG
 
  int startexploreval=100;
- int endexploreval=65000;//*/
+ int endexploreval=65000;
 
 /*
  #define FICHIER  "Mystere6_CHAR_X_1118_Y_2046_Z_694.raw"
@@ -57,8 +57,8 @@ int endexploreval=20;//*/
  int endexploreval=255;//*/
 
 
-/*
- #define FICHIER  "Mystere4_SHORT_X_512_Y_512_Z_322.raw"
+
+ /*#define FICHIER  "Mystere4_SHORT_X_512_Y_512_Z_322.raw"
  int gridSize = 512;
  int YgridSize = 512;
  int ZgridSize = 322;
@@ -67,7 +67,7 @@ int endexploreval=20;//*/
  #define SMALL
 
  int startexploreval=1;
- int endexploreval=65000; //*/
+ int endexploreval=65000;*/
 
 
 int winSize = 500;
@@ -133,6 +133,7 @@ int main(int argc, char *argv[])
         cf->SetValue(0, 1); // Définition de la première isovaleur
 
         // Transformation pour ajuster les dimensions des données à la fenêtre de visualisation
+        int maxsize=std::max(gridSize,std::max(YgridSize,ZgridSize));
         vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
         transform->Scale(gridSize / (float) maxsize, YgridSize / (float) maxsize, ZgridSize / (float) maxsize);
 
@@ -209,8 +210,10 @@ int main(int argc, char *argv[])
                 if (auxzbuffer[i] > zbuffer[i]) {
                     auxzbuffer[i] = zbuffer[i]; // Mise à jour du z-buffer auxiliaire
                     // Mise à jour des pixels colorés auxiliaires avec les valeurs de rgba actuelles
-                    auxrgba[i*4] = rgba[i*4];
-                    // Répéter pour les canaux vert, bleu et alpha
+                    auxrgba[i*4]   = rgba[i*4];
+                    auxrgba[i*4+1] = rgba[i*4+1];
+                    auxrgba[i*4+2] = rgba[i*4+2];
+                    auxrgba[i*4+3] = rgba[i*4+3];
                 }
             }
 
@@ -221,7 +224,6 @@ int main(int argc, char *argv[])
 
             // Composition et enregistrement de l'image basée sur le z-buffer
             float *new_rgba = new float[4 * npixels];
-            bool didComposite = ComposeImageZbuffer(new_rgba, zbuffer, winSize, winSize);
             char namez[128];
             sprintf(namez, "image%d-%dZ.png", countImage, passNum);
             WriteImage(namez, new_rgba, winSize, winSize);
