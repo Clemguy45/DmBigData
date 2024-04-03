@@ -1,48 +1,28 @@
-/home/clement/.local/share/JetBrains/Toolbox/apps/clion-nova/bin/cmake/linux/x64/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/home/clement/.local/share/JetBrains/Toolbox/apps/clion-nova/bin/ninja/linux/x64/ninja -G Ninja -S /home/clement/Documents/BigData/canevas_devoir -B /home/clement/Documents/BigData/canevas_devoir/cmake-build-debug
--- The imported target "vtkParseOGLExt" references the file
-   "/usr/bin/vtkParseOGLExt-7.1"
-but this file does not exist.  Possible reasons include:
-* The file was deleted, renamed, or moved to another location.
-* An install or uninstall procedure did not complete successfully.
-* The installation package was faulty and contained
-   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
-but not all the files it references.
+/home/o2163453@campus.univ-orleans.fr/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" -S /home/o2163453@campus.univ-orleans.fr/Documents/DmBigData -B /home/o2163453@campus.univ-orleans.fr/Documents/DmBigData/cmake-build-debug
+CMake Deprecation Warning:
+  Support for "Extra Generators" like
 
--- The imported target "vtkRenderingPythonTkWidgets" references the file
-   "/usr/lib/x86_64-linux-gnu/libvtkRenderingPythonTkWidgets.so"
-but this file does not exist.  Possible reasons include:
-* The file was deleted, renamed, or moved to another location.
-* An install or uninstall procedure did not complete successfully.
-* The installation package was faulty and contained
-   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
-but not all the files it references.
+    CodeBlocks
 
--- The imported target "vtk" references the file
-   "/usr/bin/vtk"
-but this file does not exist.  Possible reasons include:
-* The file was deleted, renamed, or moved to another location.
-* An install or uninstall procedure did not complete successfully.
-* The installation package was faulty and contained
-   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
-but not all the files it references.
+  is deprecated and will be removed from a future version of CMake.  IDEs may
+  use the cmake-file-api(7) to view CMake-generated project build trees.
 
--- The imported target "pvtk" references the file
-   "/usr/bin/pvtk"
-but this file does not exist.  Possible reasons include:
-* The file was deleted, renamed, or moved to another location.
-* An install or uninstall procedure did not complete successfully.
-* The installation package was faulty and contained
-   "/usr/lib/cmake/vtk-7.1/VTKTargets.cmake"
-but not all the files it references.
+
+-- Found MPI: TRUE (found version "3.1") found components: C 
+CMake Deprecation Warning at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-use-file-deprecated.cmake:1 (message):
+  The `VTK_USE_FILE` is no longer used starting with 8.90.
+Call Stack (most recent call first):
+  CMakeLists.txt:29 (include)
+
 
 CMake Warning at CMakeLists.txt:34 (MESSAGE):
   System detected:Linux
 
 
 CMake Warning at CMakeLists.txt:35 (MESSAGE):
-  Path to data: /home/clement/Documents/BigData/canevas_devoir/
+  Path to data: /home/o2163453@campus.univ-orleans.fr/Documents/DmBigData/
 
 
 -- Configuring done (0.7s)
--- Generating done (0.4s)
--- Build files have been written to: /home/clement/Documents/BigData/canevas_devoir/cmake-build-debug
+-- Generating done (0.0s)
+-- Build files have been written to: /home/o2163453@campus.univ-orleans.fr/Documents/DmBigData/cmake-build-debug

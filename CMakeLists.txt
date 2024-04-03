@@ -12,7 +12,7 @@ set(CMAKE_BUILD_TYPE Debug)
 IF(APPLE)
 
 SET( OperatingSystem "Mac os X")
-set (MY_DATA_PATH  /home/clement/Documents/BigData/canevas_devoir/)
+set (MY_DATA_PATH  /home/o2163453@campus.univ-orleans.fr/Documents/DmBigData/)
 
 
 find_package(VTK 9 REQUIRED)
@@ -23,7 +23,7 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 SET(OperatingSystem "Linux")
 
-set (MY_DATA_PATH /home/clement/Documents/BigData/canevas_devoir/)
+set (MY_DATA_PATH /home/o2163453@campus.univ-orleans.fr/Documents/DmBigData/)
 
 find_package(VTK)
 include(${VTK_USE_FILE})
@@ -47,7 +47,7 @@ include_directories("${PROJECT_BINARY_DIR}")
 
 add_executable(${PROJECT_NAME} ${SRC_LIST})
 
- 
+
 target_link_libraries(${PROJECT_NAME} ${VTK_LIBRARIES})
 
 

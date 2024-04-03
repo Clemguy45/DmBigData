@@ -1,9 +1,9 @@
 #include "exo-vtk-include.h"
 #include "config.h"
 #include "helpers.h"
+#include <omp.h>
 
 
-//*  //Enlever le premier slash pour commenter
 /*#define FICHIER  "Frog_CHAR_X_256_Y_256_Z_44.raw"
 
 int gridSize = 256;
@@ -17,58 +17,151 @@ int startexploreval=13;
 int endexploreval=20;//*/
 
 
- /*//Ajouter un slash pour décommenter
- #define FICHIER  "Mystere1_SHORT_X_512_Y_512_Z_134.raw"
+ /*#define FICHIER  "Mystere1_SHORT_X_512_Y_512_Z_134.raw"
  int gridSize = 512;
  int YgridSize = 512;
  int ZgridSize = 134;
 
  #define SHORT
  #define SMALL
-
+//Time OOC = 19.3529s
+//Time OOC and Parallelism = 20.4552s
  int startexploreval=16500;
- int endexploreval=65000;//*/
+ int endexploreval=65000;
+ int elevation = 20;
+ int azimute = -10;*/
 
 
-
- #define FICHIER  "Mystere5_SHORT_X_2048_Y_2048_Z_756.raw"
+/*#define FICHIER  "Mystere5_SHORT_X_2048_Y_2048_Z_756.raw"
 
  int gridSize = 2048;
  int YgridSize = 2048;
  int ZgridSize = 756;
 
- #define SHORT
- #define BIG
+#define SHORT
+#define BIG
+//Time OOC = 657.437s
+//Time OOC and Parallelism = 660.048s
 
- int startexploreval=100;
- int endexploreval=65000;
+int startexploreval=100;
+int endexploreval=65000;
+int elevation = 0;
+int azimute = 0;
+*/
 
-/*
- #define FICHIER  "Mystere6_CHAR_X_1118_Y_2046_Z_694.raw"
+/*#define FICHIER  "Mystere2_SHORT_X_512_Y_499_Z_512.raw"
 
- int gridSize = 1118;
- int YgridSize = 2046;
- int ZgridSize = 694;
+int gridSize = 512;
+int YgridSize = 499;
+int ZgridSize = 512;
 
- #define CHAR
- #define BIG
+#define SHORT
+#define SMALL
+//Time OOC = 30.6129s
+//Time OOC and Parallelism = 31.4214s
+int startexploreval=100;
+int endexploreval=65000;
+int elevation = -100;
+int azimute = 0;
+*/
 
- int startexploreval=1;
- int endexploreval=255;//*/
+/*#define FICHIER  "Mystere6_CHAR_X_1118_Y_2046_Z_694.raw"
+
+int gridSize = 1118;
+int YgridSize = 2046;
+int ZgridSize = 694;
+
+#define CHAR
+#define SMALL
+//Time OOC = 284.036s
+//Time OOC and Parallelism = 288.703s
+int startexploreval=13;
+int endexploreval=255;
+int elevation = 140;
+int azimute = 0;
+*/
 
 
+/*#define FICHIER  "Mystere4_SHORT_X_512_Y_512_Z_322.raw"
+int gridSize = 512;
+int YgridSize = 512;
+int ZgridSize = 322;
 
- /*#define FICHIER  "Mystere4_SHORT_X_512_Y_512_Z_322.raw"
- int gridSize = 512;
- int YgridSize = 512;
- int ZgridSize = 322;
+#define SHORT
+#define SMALL
+//Time OOC = 22.66s
+//Time OOC and Parallelism = 22.93s
+int startexploreval=1;
+int endexploreval=65000;
+int elevation = 145;
+int azimute = 0;
+*/
 
- #define SHORT
- #define SMALL
+/*#define FICHIER  "Mystere9_SHORT_X_2048_Y_2048_Z_1444.raw"
 
- int startexploreval=1;
- int endexploreval=65000;*/
+int gridSize = 2048;
+int YgridSize = 2048;
+int ZgridSize = 1444;
 
+#define SHORT
+#define BIG
+//Time OOC = 1196.34s
+//Time OOC and Parallelism = 1227.72s
+int startexploreval=39000;
+int endexploreval=65536;
+int elevation = 90;
+int azimute = 0;
+*/
+
+#define FICHIER  "Mystere11_SHORT_X_512_Y_512_Z_1024.raw"
+
+int gridSize = 512;
+int YgridSize = 512;
+int ZgridSize = 1024;
+
+#define SHORT
+#define BIG
+//Time OOC = 59.9775s
+//Time OOC and Parallelism = 60.2677s
+
+int startexploreval=47000;
+int endexploreval=65530;
+int elevation = 90;
+int azimute = 90;
+
+
+/*#define FICHIER  "Mystere10_CHAR_X_1204_Y_1296_Z_224.raw"
+
+int gridSize = 1204;
+int YgridSize = 1296;
+int ZgridSize = 224;
+
+#define CHAR
+#define SMALL
+//Time OOC = 69s
+//Time OOC and Parallelism = 70s
+int startexploreval=24;
+int endexploreval=40;
+int elevation = 0;
+int azimute = 0;
+*/
+
+/*#define FICHIER  "Mystere8_CHAR_X_2048_Y_2048_Z_2048.raw"
+
+int gridSize = 2048;
+int YgridSize = 2048;
+int ZgridSize = 2048;
+
+#define CHAR
+#define SMALL
+
+//Time OOC = 1641.4s
+//Time OOC and Parallelism = 1640.2s
+
+int startexploreval=125;
+int endexploreval=255;
+int elevation = 180;
+int azimute = 0;*/
 
 int winSize = 500;
 
@@ -84,7 +177,75 @@ using std::endl;
 // Function prototypes
 vtkRectilinearGrid  *ReadGrid(int zStart, int zEnd);
 void WriteImage(const char *name, const float *rgba, int width, int height);
-bool ComposeImageZbuffer(float *rgba_out, float *zbuffer,   int image_width, int image_height);
+
+void initializeArrays(float* auxrgba, float* auxzbuffer, int npixels) {
+    for (int i = 0; i < npixels; i++) {
+        auxzbuffer[i] = 1.0; // Profondeur initiale maximale
+        auxrgba[i * 4] = 0;  // Couleur initiale rouge
+        auxrgba[i * 4 + 1] = 0;  // Couleur initiale verte
+        auxrgba[i * 4 + 2] = 0;  // Couleur initiale bleue
+        auxrgba[i * 4 + 3] = 0;  // Couleur initiale alpha
+    }
+}
+
+void composeImageWithZBuffer(float* auxrgba, float* auxzbuffer, const float* rgba, const float* zbuffer, int winSize) {
+    for (int i = 0; i < winSize * winSize; i++) {
+        if (auxzbuffer[i] > zbuffer[i]) {
+            auxzbuffer[i] = zbuffer[i]; // Mise à jour du z-buffer auxiliaire
+            // Mise à jour des pixels colorés auxiliaires avec les valeurs de rgba actuelles
+            auxrgba[i * 4] = rgba[i * 4];
+            auxrgba[i * 4 + 1] = rgba[i * 4 + 1];
+            auxrgba[i * 4 + 2] = rgba[i * 4 + 2];
+            auxrgba[i * 4 + 3] = rgba[i * 4 + 3];
+        }
+    }
+}
+
+void processIntermediateImage(vtkContourFilter *cf, vtkRenderWindow *renwin, float* auxrgba, float* auxzbuffer, int winSize, int countImage, int passNum, int startValueImage, int ZgridSize) {
+    // Calcul de l'intervalle de profondeur Z à traiter pour cette image intermédiaire
+    int step = (ZgridSize / nbImageIntermediaire);
+    int zStart = passNum * step; // Début de l'intervalle Z pour cette passe
+    int zEnd = zStart + step; // Fin de l'intervalle Z pour cette passe
+    if(zEnd >= ZgridSize) zEnd = ZgridSize - 1; // S'assurer qu'on ne dépasse pas la limite de Z
+
+    // Vérification de l'utilisation de la mémoire avant de lire la grille
+    GetMemorySize(("Pass " + std::to_string(nbImageIntermediaire) + " before read").c_str());
+
+    // Lecture de la portion de grille correspondant à l'intervalle Z actuel
+    vtkRectilinearGrid *rg = ReadGrid(zStart, zEnd);
+
+    // Vérification de l'utilisation de la mémoire après la lecture de la grille
+    GetMemorySize(("Pass " + std::to_string(passNum) + " after read").c_str());
+
+    // Configuration de l'entrée du filtre de contour avec les données lues
+    cf->SetInputData(rg);
+    rg->Delete(); // Suppression de l'objet de grille pour libérer la mémoire
+
+    // Réglage de la valeur d'isovaleur pour la création de surfaces
+    cf->SetValue(0, startValueImage);
+    cf->Update(); // Mise à jour du filtre pour appliquer les modifications
+    cf->GetOutput()->GetPointData()->SetActiveScalars("pass_num");
+
+    // Rendu de la scène dans la fenêtre de rendu
+    renwin->Render();
+
+    // Récupération des données de pixels colorés et de profondeur de la fenêtre de rendu
+    float *rgba = renwin->GetRGBAPixelData(0, 0, winSize - 1, winSize - 1, 1);
+    float *zbuffer = renwin->GetZbufferData(0, 0, winSize - 1, winSize - 1);
+
+    // Composition de l'image finale en utilisant le z-buffer pour conserver le pixel le plus proche
+    composeImageWithZBuffer(auxrgba, auxzbuffer, rgba, zbuffer, winSize);
+
+    // Création du nom de fichier et enregistrement de l'image intermédiaire actuelle
+    char name[128];
+    sprintf(name, "imageInter%d-%d.png", countImage, passNum);
+    WriteImage(name, rgba, winSize, winSize);
+
+    // Libération de la mémoire des tableaux rgba et zbuffer
+    free(rgba);
+    free(zbuffer);
+}
+
 
 
 int main(int argc, char *argv[])
@@ -92,14 +253,12 @@ int main(int argc, char *argv[])
     // Initialisation du générateur de nombres aléatoires
     srand ( time(NULL) );
 
-    // Déclaration de la grille VTK qui contiendra les données lues
-    vtkRectilinearGrid *reader = NULL;
-
     // Mesure de l'utilisation de la mémoire au début du programme
     GetMemorySize("initialization");
     int t1;
     t1 = timer->StartTimer(); // Démarrage d'un chronomètre pour mesurer le temps d'exécution
 
+    #pragma omp parallel for
     for (int countImage = 0; countImage < imageMax; countImage++)
     {
         // Création d'une fenêtre de visualisation de taille winSize x winSize
@@ -110,13 +269,7 @@ int main(int argc, char *argv[])
         float *auxzbuffer = new float[npixels]; // Z-buffer pour chaque pixel
 
         // Initialisation des tableaux auxrgba et auxzbuffer
-        for (int i = 0 ; i < npixels ; i++){
-            auxzbuffer[i] = 1.0; // Profondeur initiale maximale
-            auxrgba[i*4] = 0; // Couleur initiale rouge
-            auxrgba[i*4+1] = 0; // Couleur initiale verte
-            auxrgba[i*4+2] = 0; // Couleur initiale bleue
-            auxrgba[i*4+3] = 0; // Couleur initiale alpha
-        }
+        initializeArrays(auxrgba, auxzbuffer, npixels);
 
         // Calcul de l'intervalle de valeurs d'isovaleur et du pas pour les images intermédiaires
         int range = (endexploreval - startexploreval);
@@ -170,69 +323,16 @@ int main(int argc, char *argv[])
         cam->SetFocalPoint(0.5, 0.5, 0.5);
         cam->SetPosition(0.5, 0.5, 3.);
         cam->SetViewUp(0., -1.0, 0.0);
-        cam->Elevation(45);
+        cam->Elevation(elevation);
+        cam->Azimuth(azimute);
+
 
         // Début d'une boucle pour générer et enregistrer les images intermédiaires basées sur la décomposition de l'espace Z (profondeur)
+        #pragma omp parallel for
         for (passNum = 0; passNum < nbImageIntermediaire; passNum++) {
-            // Calcul de l'intervalle de profondeur Z à traiter pour cette image intermédiaire
-            int step = (ZgridSize / nbImageIntermediaire);
-            int zStart = passNum * step; // Début de l'intervalle Z pour cette passe
-            int zEnd = zStart + step; // Fin de l'intervalle Z pour cette passe
-            if(zEnd >= ZgridSize) zEnd = ZgridSize - 1; // S"assurer qu'on ne dépasse pas la limite de Z
-
-            // Vérification de l'utilisation de la mémoire avant de lire la grille
-            GetMemorySize(("Pass " + std::to_string(nbImageIntermediaire) + " before read").c_str());
-
-            // Lecture de la portion de grille correspondant à l'intervalle Z actuel
-            vtkRectilinearGrid *rg = ReadGrid(zStart, zEnd);
-
-            // Vérification de l'utilisation de la mémoire après la lecture de la grille
-            GetMemorySize(("Pass " + std::to_string(passNum) + " after read").c_str());
-
-            // Configuration de l'entrée du filtre de contour avec les données lues
-            cf->SetInputData(rg);
-            rg->Delete(); // Suppression de l'objet de grille pour libérer la mémoire
-
-            // Réglage de la valeur d'isovaleur pour la création de surfaces
-            cf->SetValue(0, startValueImage);
-            cf->Update(); // Mise à jour du filtre pour appliquer les modifications
-            cf->GetOutput()->GetPointData()->SetActiveScalars("pass_num");
-
-            // Rendu de la scène dans la fenêtre de rendu
-            renwin->Render();
-
-            // Récupération des données de pixels colorés et de profondeur de la fenêtre de rendu
-            float *rgba = renwin->GetRGBAPixelData(0, 0, winSize - 1, winSize - 1, 1);
-            float *zbuffer = renwin->GetZbufferData(0, 0, winSize - 1, winSize - 1);
-
-            // Composition de l'image finale en utilisant le z-buffer pour conserver le pixel le plus proche
-            for (int i = 0; i < winSize * winSize; i++){
-                if (auxzbuffer[i] > zbuffer[i]) {
-                    auxzbuffer[i] = zbuffer[i]; // Mise à jour du z-buffer auxiliaire
-                    // Mise à jour des pixels colorés auxiliaires avec les valeurs de rgba actuelles
-                    auxrgba[i*4]   = rgba[i*4];
-                    auxrgba[i*4+1] = rgba[i*4+1];
-                    auxrgba[i*4+2] = rgba[i*4+2];
-                    auxrgba[i*4+3] = rgba[i*4+3];
-                }
-            }
-
-            // Création du nom de fichier et enregistrement de l'image intermédiaire actuelle
-            char name[128];
-            sprintf(name, "imageInter%d-%d.png", countImage, passNum);
-            WriteImage(name, rgba, winSize, winSize);
-
-            // Composition et enregistrement de l'image basée sur le z-buffer
-            float *new_rgba = new float[4 * npixels];
-            char namez[128];
-            sprintf(namez, "image%d-%dZ.png", countImage, passNum);
-            WriteImage(namez, new_rgba, winSize, winSize);
-
-            // Libération de la mémoire des tableaux rgba et zbuffer
-            free(rgba);
-            free(zbuffer);
-            free(new_rgba);
+            processIntermediateImage(cf, renwin, auxrgba, auxzbuffer, winSize, countImage, passNum, startValueImage, ZgridSize);
         }
+
         // Création du nom de fichier et enregistrement de l'image finale pour cette passe
         char finalName[128];
         sprintf(finalName, "imageFinal%d-%d.png", countImage, startValueImage);
@@ -252,8 +352,6 @@ int main(int argc, char *argv[])
     // Arrêt du chronomètre et affichage du temps écoulé
     timer->StopTimer(t1,"time");
 }
-
-
 
 // You should not need to modify these routines.
 

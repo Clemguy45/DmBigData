@@ -1,3 +1,3 @@
 
 
-#define MY_DATA_PATH "/home/clement/Documents/BigData/canevas_devoir/" 
+#define MY_DATA_PATH "/home/o2163453@campus.univ-orleans.fr/Documents/DmBigData/" 

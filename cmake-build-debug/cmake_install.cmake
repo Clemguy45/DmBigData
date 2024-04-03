@@ -1,4 +1,4 @@
-# Install script for directory: /home/clement/Documents/BigData/canevas_devoir
+# Install script for directory: /home/o2163453@campus.univ-orleans.fr/Documents/DmBigData
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -50,5 +50,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/clement/Documents/BigData/canevas_devoir/cmake-build-debug/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/o2163453@campus.univ-orleans.fr/Documents/DmBigData/cmake-build-debug/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
