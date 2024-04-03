@@ -26,7 +26,7 @@ int endexploreval=20;//*/
  #define SMALL
 //Time OOC = 19.3529s
 //Time OOC and Parallelism = 20.4552s
- int startexploreval=16500;
+ int startexploreval=20000;
  int endexploreval=65000;
  int elevation = 20;
  int azimute = -10;*/
@@ -113,7 +113,7 @@ int elevation = 90;
 int azimute = 0;
 */
 
-#define FICHIER  "Mystere11_SHORT_X_512_Y_512_Z_1024.raw"
+/*#define FICHIER  "Mystere11_SHORT_X_512_Y_512_Z_1024.raw"
 
 int gridSize = 512;
 int YgridSize = 512;
@@ -128,7 +128,7 @@ int startexploreval=47000;
 int endexploreval=65530;
 int elevation = 90;
 int azimute = 90;
-
+*/
 
 /*#define FICHIER  "Mystere10_CHAR_X_1204_Y_1296_Z_224.raw"
 
@@ -146,7 +146,7 @@ int elevation = 0;
 int azimute = 0;
 */
 
-/*#define FICHIER  "Mystere8_CHAR_X_2048_Y_2048_Z_2048.raw"
+#define FICHIER  "Mystere8_CHAR_X_2048_Y_2048_Z_2048.raw"
 
 int gridSize = 2048;
 int YgridSize = 2048;
@@ -161,7 +161,7 @@ int ZgridSize = 2048;
 int startexploreval=125;
 int endexploreval=255;
 int elevation = 180;
-int azimute = 0;*/
+int azimute = 0;
 
 int winSize = 500;
 
